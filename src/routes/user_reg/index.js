@@ -5,14 +5,14 @@ const path = require("path");
 const { parse } = require("json2csv");
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const uuidv1 = require('uuid/v1');
 
 // location of file
 const userRegFilePath = path.join(__dirname, "../../data/userRegData.json");
 
 router.get("/", async (req, res) => {  
   let userRegData = await readFile(userRegFilePath);
-  userRegData = await JSON.parse(userRegData);
-  res.send(userRegData);
+  res.send(await JSON.parse(userRegData));
 });
 
 router.get("/:id", (req, res) => {
@@ -20,7 +20,12 @@ router.get("/:id", (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  res.send("POST user reg!");
+  let userRegData = await readFile(userRegFilePath);
+  userRegData = await JSON.parse(userRegData);
+  const newUserRegData = {...req.body, id: uuidv1(), createdAt: new Date()};
+  userRegData.push(newUserRegData);
+  res.send(newUserRegData);
+  await writeFile(userRegFilePath, JSON.stringify(userRegData));
 });
 
 router.put("/:id", (req, res) => {
